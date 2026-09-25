@@ -172,6 +172,7 @@ main {
   gap: 13px;
   align-items: flex-start;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   padding: 2px 2px 22px;
   margin: 0 auto;
   max-width: 1730px;
@@ -658,7 +659,7 @@ main {
 }
 @media (max-width: 800px) {
   .course[draggable="true"] {
-    touch-action: pan-y;
+    touch-action: auto;
     -webkit-user-select: none;
     user-select: none;
   }
