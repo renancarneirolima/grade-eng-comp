@@ -666,16 +666,23 @@ main {
 .course.dragging {
   opacity: 0.45;
 }
-.touch-drag-ghost {
+.course.touch-moving {
   position: fixed;
   top: 0;
   left: 0;
   z-index: 20;
   margin: 0 !important;
   pointer-events: none;
-  opacity: 0.92;
+  opacity: 1;
   box-shadow: 0 14px 28px #17315b38;
   will-change: transform;
+  transition: none;
+}
+.course-drag-placeholder {
+  width: 100%;
+  border: 1px dashed #7aa7ef;
+  border-radius: 10px;
+  background: #eef5ff;
 }
 .course.drop-before {
   box-shadow: inset 0 4px 0 #1746b1;

@@ -319,7 +319,7 @@ let semesterCount = Math.max(
   touchDragTimer = null,
   touchDragStarted = false,
   touchStartPoint = null,
-  touchDragGhost = null,
+  touchDragSource = null,
   ignoreCourseClickUntil = 0,
   semesterOrder = JSON.parse(
     localStorage.getItem("ecUfcSemesterOrder") || "{}",
@@ -403,27 +403,40 @@ function clearDragState() {
   touchDragTimer = null;
   touchDragStarted = false;
   touchStartPoint = null;
-  touchDragGhost?.remove();
-  touchDragGhost = null;
+  if (touchDragSource) {
+    const { card, placeholder } = touchDragSource;
+    placeholder.remove();
+    card.classList.remove("touch-moving");
+    ["width", "height", "left", "top", "transform"].forEach((property) =>
+      card.style.removeProperty(property),
+    );
+  }
+  touchDragSource = null;
   draggedCourseId = null;
   document
     .querySelectorAll(".term,.course")
     .forEach((item) => item.classList.remove("dragging", "drag-over", "drop-before"));
 }
-function startTouchGhost(card, touch) {
-  const bounds = card.getBoundingClientRect();
-  touchDragGhost = card.cloneNode(true);
-  touchDragGhost.classList.remove("dragging");
-  touchDragGhost.classList.add("touch-drag-ghost");
-  touchDragGhost.style.width = `${bounds.width}px`;
-  touchDragGhost.style.height = `${bounds.height}px`;
-  document.body.append(touchDragGhost);
-  moveTouchGhost(touch);
+function startTouchCard(card) {
+  const bounds = card.getBoundingClientRect(),
+    styles = getComputedStyle(card),
+    placeholder = document.createElement("div");
+  placeholder.className = "course-drag-placeholder";
+  placeholder.style.height = `${bounds.height}px`;
+  placeholder.style.marginBottom = styles.marginBottom;
+  card.before(placeholder);
+  touchDragSource = { card, placeholder };
+  card.classList.add("touch-moving");
+  card.style.width = `${bounds.width}px`;
+  card.style.height = `${bounds.height}px`;
+  card.style.left = `${bounds.left}px`;
+  card.style.top = `${bounds.top}px`;
 }
-function moveTouchGhost(touch) {
-  if (!touchDragGhost) return;
-  const width = touchDragGhost.getBoundingClientRect().width;
-  touchDragGhost.style.transform = `translate3d(${touch.clientX - width / 2}px, ${touch.clientY - 28}px, 0)`;
+function moveTouchCard(touch) {
+  if (!touchDragSource || !touchStartPoint) return;
+  const x = touch.clientX - touchStartPoint.x,
+    y = touch.clientY - touchStartPoint.y;
+  touchDragSource.card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 }
 function touchDropTarget(touch) {
   const element = document.elementFromPoint(touch.clientX, touch.clientY),
@@ -496,7 +509,7 @@ function courseButton(c) {
         draggedCourseId = c[0];
         touchDragStarted = true;
         b.classList.add("dragging");
-        startTouchGhost(b, touch);
+        startTouchCard(b);
       }, 400);
     };
     b.ontouchmove = (e) => {
@@ -515,7 +528,7 @@ function courseButton(c) {
       }
       if (!touchDragStarted) return;
       e.preventDefault();
-      moveTouchGhost(touch);
+      moveTouchCard(touch);
       touchDropTarget(touch);
     };
     b.ontouchend = (e) => {
