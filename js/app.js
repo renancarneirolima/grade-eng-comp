@@ -319,6 +319,7 @@ let semesterCount = Math.max(
   touchDragTimer = null,
   touchDragStarted = false,
   touchStartPoint = null,
+  touchDragGhost = null,
   ignoreCourseClickUntil = 0,
   semesterOrder = JSON.parse(
     localStorage.getItem("ecUfcSemesterOrder") || "{}",
@@ -402,10 +403,27 @@ function clearDragState() {
   touchDragTimer = null;
   touchDragStarted = false;
   touchStartPoint = null;
+  touchDragGhost?.remove();
+  touchDragGhost = null;
   draggedCourseId = null;
   document
     .querySelectorAll(".term,.course")
     .forEach((item) => item.classList.remove("dragging", "drag-over", "drop-before"));
+}
+function startTouchGhost(card, touch) {
+  const bounds = card.getBoundingClientRect();
+  touchDragGhost = card.cloneNode(true);
+  touchDragGhost.classList.remove("dragging");
+  touchDragGhost.classList.add("touch-drag-ghost");
+  touchDragGhost.style.width = `${bounds.width}px`;
+  touchDragGhost.style.height = `${bounds.height}px`;
+  document.body.append(touchDragGhost);
+  moveTouchGhost(touch);
+}
+function moveTouchGhost(touch) {
+  if (!touchDragGhost) return;
+  const width = touchDragGhost.getBoundingClientRect().width;
+  touchDragGhost.style.transform = `translate3d(${touch.clientX - width / 2}px, ${touch.clientY - 28}px, 0)`;
 }
 function touchDropTarget(touch) {
   const element = document.elementFromPoint(touch.clientX, touch.clientY),
@@ -478,7 +496,8 @@ function courseButton(c) {
         draggedCourseId = c[0];
         touchDragStarted = true;
         b.classList.add("dragging");
-      }, 280);
+        startTouchGhost(b, touch);
+      }, 400);
     };
     b.ontouchmove = (e) => {
       const touch = e.touches[0];
@@ -496,6 +515,7 @@ function courseButton(c) {
       }
       if (!touchDragStarted) return;
       e.preventDefault();
+      moveTouchGhost(touch);
       touchDropTarget(touch);
     };
     b.ontouchend = (e) => {
