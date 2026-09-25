@@ -322,7 +322,7 @@ let semesterCount = Math.max(
   touchDragSource = null,
   touchDragPoint = null,
   touchAutoScrollDirection = 0,
-  touchAutoScrollFrame = null,
+  touchAutoScrollTimer = null,
   ignoreCourseClickUntil = 0,
   semesterOrder = JSON.parse(
     localStorage.getItem("ecUfcSemesterOrder") || "{}",
@@ -403,13 +403,13 @@ function placeCourse(course, target, beforeId) {
 }
 function clearDragState() {
   clearTimeout(touchDragTimer);
-  cancelAnimationFrame(touchAutoScrollFrame);
+  clearInterval(touchAutoScrollTimer);
   touchDragTimer = null;
   touchDragStarted = false;
   touchStartPoint = null;
   touchDragPoint = null;
   touchAutoScrollDirection = 0;
-  touchAutoScrollFrame = null;
+  touchAutoScrollTimer = null;
   if (touchDragSource) {
     const { card, placeholder } = touchDragSource;
     placeholder.remove();
@@ -445,34 +445,32 @@ function moveTouchCard(touch) {
     y = touch.clientY - touchStartPoint.y;
   touchDragSource.card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 }
-function runTouchAutoScroll() {
+function scrollTouchGrid() {
   const grid = document.querySelector("#grid");
   if (!touchDragStarted || !touchAutoScrollDirection || !grid) {
-    touchAutoScrollFrame = null;
+    clearInterval(touchAutoScrollTimer);
+    touchAutoScrollTimer = null;
     return;
   }
   const previousPosition = grid.scrollLeft;
-  grid.scrollLeft += touchAutoScrollDirection * 13;
+  grid.scrollLeft += touchAutoScrollDirection * 14;
   if (grid.scrollLeft === previousPosition) {
-    touchAutoScrollFrame = null;
+    clearInterval(touchAutoScrollTimer);
+    touchAutoScrollTimer = null;
     return;
   }
   if (touchDragPoint) touchDropTarget(touchDragPoint);
-  touchAutoScrollFrame = requestAnimationFrame(runTouchAutoScroll);
 }
 function updateTouchAutoScroll(touch) {
-  const grid = document.querySelector("#grid");
-  if (!grid) return;
-  const bounds = grid.getBoundingClientRect(),
-    edgeSize = Math.min(72, bounds.width / 4);
+  const edgeSize = Math.min(80, Math.max(48, window.innerWidth * 0.16));
   let direction = 0;
-  if (touch.clientX < bounds.left + edgeSize) direction = -1;
-  if (touch.clientX > bounds.right - edgeSize) direction = 1;
+  if (touch.clientX <= edgeSize) direction = -1;
+  if (touch.clientX >= window.innerWidth - edgeSize) direction = 1;
   if (direction === touchAutoScrollDirection) return;
   touchAutoScrollDirection = direction;
-  cancelAnimationFrame(touchAutoScrollFrame);
-  touchAutoScrollFrame = direction
-    ? requestAnimationFrame(runTouchAutoScroll)
+  clearInterval(touchAutoScrollTimer);
+  touchAutoScrollTimer = direction
+    ? setInterval(scrollTouchGrid, 16)
     : null;
 }
 function touchDropTarget(touch) {
