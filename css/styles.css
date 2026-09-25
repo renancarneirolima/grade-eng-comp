@@ -723,6 +723,17 @@ main {
   .semester-actions button {
     width: 118px;
   }
+
+  /* Cartões regulares: redução de 17,5% sem afetar os componentes contínuos. */
+  .course:not(.continuous) {
+    min-height: 78px;
+    margin-bottom: 7px;
+    padding: 9px;
+  }
+
+  .course:not(.continuous) .name {
+    margin: 4px 0 7px;
+  }
 }
 .toolbar-actions {
   justify-content: flex-start;
