@@ -316,6 +316,10 @@ let semesterCount = Math.max(
     Number(localStorage.getItem("ecUfcSemesterCount") || 10),
   ),
   draggedCourseId = null,
+  touchDragTimer = null,
+  touchDragStarted = false,
+  touchStartPoint = null,
+  ignoreCourseClickUntil = 0,
   semesterOrder = JSON.parse(
     localStorage.getItem("ecUfcSemesterOrder") || "{}",
   );
@@ -393,6 +397,33 @@ function placeCourse(course, target, beforeId) {
   if (index >= 0) list.splice(index, 0, course[0]);
   else list.push(course[0]);
 }
+function clearDragState() {
+  clearTimeout(touchDragTimer);
+  touchDragTimer = null;
+  touchDragStarted = false;
+  touchStartPoint = null;
+  draggedCourseId = null;
+  document
+    .querySelectorAll(".term,.course")
+    .forEach((item) => item.classList.remove("dragging", "drag-over", "drop-before"));
+}
+function touchDropTarget(touch) {
+  const element = document.elementFromPoint(touch.clientX, touch.clientY),
+    course = element?.closest(".course"),
+    term = element?.closest(".term");
+  document
+    .querySelectorAll(".term,.course")
+    .forEach((item) => item.classList.remove("drag-over", "drop-before"));
+  if (course && course.dataset.courseId !== draggedCourseId) {
+    course.classList.add("drop-before");
+    return { course, term: course.closest(".term") };
+  }
+  if (term) {
+    term.classList.add("drag-over");
+    return { term };
+  }
+  return null;
+}
 function courseButton(c) {
   const continuous = c[3] === "continuous",
     s = state(c),
@@ -437,14 +468,60 @@ function courseButton(c) {
       render();
     };
     b.ondragend = () => {
-      draggedCourseId = null;
-      b.classList.remove("dragging");
-      document
-        .querySelectorAll(".term,.course")
-        .forEach((item) => item.classList.remove("drag-over", "drop-before"));
+      clearDragState();
     };
+    b.ontouchstart = (e) => {
+      if (e.touches.length !== 1) return;
+      const touch = e.touches[0];
+      touchStartPoint = { x: touch.clientX, y: touch.clientY };
+      touchDragTimer = setTimeout(() => {
+        draggedCourseId = c[0];
+        touchDragStarted = true;
+        b.classList.add("dragging");
+      }, 280);
+    };
+    b.ontouchmove = (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      if (
+        !touchDragStarted &&
+        touchStartPoint &&
+        Math.hypot(
+          touch.clientX - touchStartPoint.x,
+          touch.clientY - touchStartPoint.y,
+        ) > 10
+      ) {
+        clearTimeout(touchDragTimer);
+        touchDragTimer = null;
+      }
+      if (!touchDragStarted) return;
+      e.preventDefault();
+      touchDropTarget(touch);
+    };
+    b.ontouchend = (e) => {
+      clearTimeout(touchDragTimer);
+      if (!touchDragStarted) return;
+      e.preventDefault();
+      const target = touchDropTarget(e.changedTouches[0]),
+        course = byId[draggedCourseId];
+      ignoreCourseClickUntil = Date.now() + 450;
+      if (course && target?.course) {
+        placeCourse(course, Number(target.term.dataset.semester), target.course.dataset.courseId);
+        persistLayout();
+        render();
+      } else if (course && target?.term) {
+        placeCourse(course, Number(target.term.dataset.semester));
+        persistLayout();
+        render();
+      }
+      clearDragState();
+    };
+    b.ontouchcancel = clearDragState;
   }
-  b.onclick = () => open(c);
+  b.onclick = () => {
+    if (Date.now() < ignoreCourseClickUntil) return;
+    open(c);
+  };
   return b;
 }
 function render() {

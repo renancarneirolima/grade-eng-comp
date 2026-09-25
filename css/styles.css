@@ -656,6 +656,13 @@ main {
 .course[draggable="true"] {
   cursor: grab;
 }
+@media (max-width: 800px) {
+  .course[draggable="true"] {
+    touch-action: pan-y;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+}
 .course.dragging {
   opacity: 0.45;
 }
