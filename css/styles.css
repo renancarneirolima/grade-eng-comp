@@ -724,15 +724,15 @@ main {
     width: 118px;
   }
 
-  /* Cartões regulares: redução de 17,5% sem afetar os componentes contínuos. */
+  /* Cartões regulares: mais 15% de compactação, sem afetar os componentes contínuos. */
   .course:not(.continuous) {
-    min-height: 78px;
-    margin-bottom: 7px;
-    padding: 9px;
+    min-height: 66px;
+    margin-bottom: 6px;
+    padding: 8px;
   }
 
   .course:not(.continuous) .name {
-    margin: 4px 0 7px;
+    margin: 3px 0 6px;
   }
 }
 .toolbar-actions {
