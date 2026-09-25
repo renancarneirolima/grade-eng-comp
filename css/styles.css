@@ -796,6 +796,9 @@ main {
   padding: 10px;
   border-color: #eadcc8;
 }
+.optative-choice[hidden] {
+  display: none;
+}
 .optative-choice:disabled {
   cursor: default;
   opacity: 0.55;
