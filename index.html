@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      name="description"
+      content="Grade curricular interativa de Engenharia de Computação da UFC, baseada no PPC."
+    />
+    <title>Grade Interativa · Engenharia de Computação UFC</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%230b2447'/%3E%3Cpath d='M18 18h28v28H18z' fill='none' stroke='%236de0c5' stroke-width='4'/%3E%3Cpath d='M25 25h14v14H25z' fill='%236de0c5'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="css/styles.css" />
+  </head>
+  <body>
+    <header>
+      <p class="eyebrow">UFC · Fortaleza</p>
+      <h1>Engenharia de Computação - Matriz Curricular</h1>
+    </header>
+    <section class="toolbar">
+      <div class="metrics">
+        <div class="metric">
+          <label>disciplinas</label
+          ><strong id="completed">0 <em>/ 0</em></strong>
+        </div>
+        <div class="metric">
+          <label>carga concluída</label><strong id="hours">0 h</strong>
+        </div>
+        <div class="metric">
+          <label>progresso</label><strong id="percent">0%</strong>
+          <div class="bar" aria-hidden="true"><i id="fill"></i></div>
+        </div>
+        <div class="metric">
+          <label>próximas liberadas</label><strong id="available">0</strong>
+        </div>
+      </div>
+      <div class="toolbar-actions">
+        <button id="reset">Recomeçar</button
+        ><button id="optatives" class="optatives-button">Optativas</button>
+        <div class="semester-actions">
+          <button id="add-semester">+ Semestre</button
+          ><button id="remove-semester">− Semestre</button>
+        </div>
+      </div>
+    </section>
+    <main>
+      <div class="help">
+        <span
+          ><strong>Clique em uma matéria</strong> para abrir detalhes e
+          registrar sua conclusão.</span
+        ><span id="plan-warning"></span
+        ><span class="legend"
+          ><span><i class="dot" style="background: #1746b1"></i>disponível</span
+          ><span
+            ><i class="dot" style="background: #aebbd0"></i>aguarda
+            pré-requisito</span
+          ><span><i class="dot" style="background: #22a974"></i>concluída</span
+          ><span
+            ><i class="dot" style="background: #f3ca8a"></i>dependente
+            bloqueada</span
+          ></span
+        >
+      </div>
+      <div class="grid" id="grid"></div>
+      <p class="foot">
+        Fonte: PPC de Engenharia de Computação. Estágio Supervisionado e TCC II
+        seguem regras institucionais próprias: TCC II requer integralização das
+        demais componentes; o estágio requer ao menos 50% da carga prevista e
+        aval da Coordenação quando aplicável.
+      </p>
+    </main>
+    <aside class="panel" id="panel" aria-live="polite">
+      <button class="close" aria-label="Fechar detalhes" id="close">×</button>
+      <div id="detail"></div>
+    </aside>
+    <script src="js/app.js" defer></script>
+  </body>
+</html>
