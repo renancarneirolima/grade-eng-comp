@@ -320,6 +320,9 @@ let semesterCount = Math.max(
   touchDragStarted = false,
   touchStartPoint = null,
   touchDragSource = null,
+  touchDragPoint = null,
+  touchAutoScrollDirection = 0,
+  touchAutoScrollFrame = null,
   ignoreCourseClickUntil = 0,
   semesterOrder = JSON.parse(
     localStorage.getItem("ecUfcSemesterOrder") || "{}",
@@ -400,9 +403,13 @@ function placeCourse(course, target, beforeId) {
 }
 function clearDragState() {
   clearTimeout(touchDragTimer);
+  cancelAnimationFrame(touchAutoScrollFrame);
   touchDragTimer = null;
   touchDragStarted = false;
   touchStartPoint = null;
+  touchDragPoint = null;
+  touchAutoScrollDirection = 0;
+  touchAutoScrollFrame = null;
   if (touchDragSource) {
     const { card, placeholder } = touchDragSource;
     placeholder.remove();
@@ -437,6 +444,36 @@ function moveTouchCard(touch) {
   const x = touch.clientX - touchStartPoint.x,
     y = touch.clientY - touchStartPoint.y;
   touchDragSource.card.style.transform = `translate3d(${x}px, ${y}px, 0)`;
+}
+function runTouchAutoScroll() {
+  const grid = document.querySelector("#grid");
+  if (!touchDragStarted || !touchAutoScrollDirection || !grid) {
+    touchAutoScrollFrame = null;
+    return;
+  }
+  const previousPosition = grid.scrollLeft;
+  grid.scrollLeft += touchAutoScrollDirection * 13;
+  if (grid.scrollLeft === previousPosition) {
+    touchAutoScrollFrame = null;
+    return;
+  }
+  if (touchDragPoint) touchDropTarget(touchDragPoint);
+  touchAutoScrollFrame = requestAnimationFrame(runTouchAutoScroll);
+}
+function updateTouchAutoScroll(touch) {
+  const grid = document.querySelector("#grid");
+  if (!grid) return;
+  const bounds = grid.getBoundingClientRect(),
+    edgeSize = Math.min(72, bounds.width / 4);
+  let direction = 0;
+  if (touch.clientX < bounds.left + edgeSize) direction = -1;
+  if (touch.clientX > bounds.right - edgeSize) direction = 1;
+  if (direction === touchAutoScrollDirection) return;
+  touchAutoScrollDirection = direction;
+  cancelAnimationFrame(touchAutoScrollFrame);
+  touchAutoScrollFrame = direction
+    ? requestAnimationFrame(runTouchAutoScroll)
+    : null;
 }
 function touchDropTarget(touch) {
   const element = document.elementFromPoint(touch.clientX, touch.clientY),
@@ -528,8 +565,10 @@ function courseButton(c) {
       }
       if (!touchDragStarted) return;
       e.preventDefault();
+      touchDragPoint = { x: touch.clientX, y: touch.clientY };
       moveTouchCard(touch);
       touchDropTarget(touch);
+      updateTouchAutoScroll(touch);
     };
     b.ontouchend = (e) => {
       clearTimeout(touchDragTimer);
