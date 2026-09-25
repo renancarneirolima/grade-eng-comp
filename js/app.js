@@ -852,6 +852,12 @@ document.querySelector("#close").onclick = () => {
   document.querySelector("#panel").classList.remove("open");
 };
 document.querySelector("#reset").onclick = () => {
+  if (
+    !confirm(
+      "Recomeçar a grade? Seu progresso, optativas adicionadas e organização dos semestres serão apagados.",
+    )
+  )
+    return;
   done.clear();
   Object.keys(continuousHours).forEach((id) => delete continuousHours[id]);
   courses
