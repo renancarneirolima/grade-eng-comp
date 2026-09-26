@@ -851,13 +851,11 @@ document.querySelector("#close").onclick = () => {
   clearDependentPreview();
   document.querySelector("#panel").classList.remove("open");
 };
-document.querySelector("#reset").onclick = () => {
-  if (
-    !confirm(
-      "Recomeçar a grade? Seu progresso, optativas adicionadas e organização dos semestres serão apagados.",
-    )
-  )
-    return;
+const resetConfirmation = document.querySelector("#reset-confirmation"),
+  closeResetConfirmation = () => {
+    resetConfirmation.hidden = true;
+  },
+  restartGrade = () => {
   done.clear();
   Object.keys(continuousHours).forEach((id) => delete continuousHours[id]);
   courses
@@ -881,6 +879,22 @@ document.querySelector("#reset").onclick = () => {
   render();
   document.querySelector("#panel").classList.remove("open");
 };
+document.querySelector("#reset").onclick = () => {
+  resetConfirmation.hidden = false;
+  document.querySelector("#confirm-reset").focus();
+};
+document.querySelector("#cancel-reset").onclick = closeResetConfirmation;
+document.querySelector("#confirm-reset").onclick = () => {
+  closeResetConfirmation();
+  restartGrade();
+};
+resetConfirmation.onclick = (event) => {
+  if (event.target === resetConfirmation) closeResetConfirmation();
+};
+document.addEventListener("keydown", (event) => {
+  if (event.key === "Escape" && !resetConfirmation.hidden)
+    closeResetConfirmation();
+});
 document.querySelector("#optatives").onclick = openOptatives;
 document.querySelector("#add-semester").onclick = () => {
   if (semesterCount >= 18) return;
