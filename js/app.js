@@ -851,11 +851,9 @@ document.querySelector("#close").onclick = () => {
   clearDependentPreview();
   document.querySelector("#panel").classList.remove("open");
 };
-const resetConfirmation = document.querySelector("#reset-confirmation"),
-  closeResetConfirmation = () => {
-    resetConfirmation.hidden = true;
-  },
-  restartGrade = () => {
+const resetButton = document.querySelector("#reset");
+let resetConfirmationTimer = null;
+function restartGrade() {
   done.clear();
   Object.keys(continuousHours).forEach((id) => delete continuousHours[id]);
   courses
@@ -878,23 +876,23 @@ const resetConfirmation = document.querySelector("#reset-confirmation"),
   localStorage.removeItem("ecUfcSelectedOptatives");
   render();
   document.querySelector("#panel").classList.remove("open");
+}
+function resetButtonLabel() {
+  clearTimeout(resetConfirmationTimer);
+  resetConfirmationTimer = null;
+  resetButton.textContent = "Recomeçar";
+  resetButton.removeAttribute("data-confirming");
+}
+resetButton.onclick = () => {
+  if (resetButton.dataset.confirming) {
+    resetButtonLabel();
+    restartGrade();
+    return;
+  }
+  resetButton.dataset.confirming = "true";
+  resetButton.textContent = "Tem certeza?";
+  resetConfirmationTimer = setTimeout(resetButtonLabel, 8000);
 };
-document.querySelector("#reset").onclick = () => {
-  resetConfirmation.hidden = false;
-  document.querySelector("#confirm-reset").focus();
-};
-document.querySelector("#cancel-reset").onclick = closeResetConfirmation;
-document.querySelector("#confirm-reset").onclick = () => {
-  closeResetConfirmation();
-  restartGrade();
-};
-resetConfirmation.onclick = (event) => {
-  if (event.target === resetConfirmation) closeResetConfirmation();
-};
-document.addEventListener("keydown", (event) => {
-  if (event.key === "Escape" && !resetConfirmation.hidden)
-    closeResetConfirmation();
-});
 document.querySelector("#optatives").onclick = openOptatives;
 document.querySelector("#add-semester").onclick = () => {
   if (semesterCount >= 18) return;
